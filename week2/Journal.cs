@@ -6,9 +6,11 @@ using System.Linq;
 
 public class Journal
 {
-    public List<Entry> _entries = new List<Entry>();
+    // CRITICAL FIX: Member variables must be private (Encapsulation).
+    private List<Entry> _entries = new List<Entry>();
 
-    public List<string> _prompts = new List<string>
+    // CRITICAL FIX: Member variables must be private (Encapsulation).
+    private List<string> _prompts = new List<string>
     {
         "Who was the most interesting person I interacted with today?",
         "What was the best part of my day?",
@@ -22,6 +24,7 @@ public class Journal
     {
         Random randomGenerator = new Random();
         int index = randomGenerator.Next(0, _prompts.Count);
+        // Access private _prompts directly, as it's in the same class
         string randomPrompt = _prompts[index];
 
         Console.WriteLine($"\n{randomPrompt}");
@@ -29,10 +32,13 @@ public class Journal
         string response = Console.ReadLine();
 
         Entry newEntry = new Entry();
-        newEntry._promptText = randomPrompt;
-        newEntry._entryText = response;
-        newEntry._dateText = DateTime.Now.ToShortDateString();
-        newEntry._timeText = DateTime.Now.ToShortTimeString(); 
+        
+        // FIX: Access fields using Public Properties (e.g., .PromptText) 
+        // since the fields in Entry are now private.
+        newEntry.PromptText = randomPrompt;
+        newEntry.EntryText = response;
+        newEntry.DateText = DateTime.Now.ToShortDateString();
+        newEntry.TimeText = DateTime.Now.ToShortTimeString(); 
 
         _entries.Add(newEntry);
         Console.WriteLine("Entry successfully saved.");
@@ -47,6 +53,7 @@ public class Journal
         }
 
         Console.WriteLine("\n--- Journal Entries ---");
+        // Access private _entries directly
         foreach (Entry entry in _entries)
         {
             entry.Display();
@@ -61,6 +68,7 @@ public class Journal
 
         using (StreamWriter outputFile = new StreamWriter(filename))
         {
+            // Access private _entries directly
             foreach (Entry entry in _entries)
             {
                 outputFile.WriteLine(entry.GetSaveString());
@@ -85,21 +93,23 @@ public class Journal
         try
         {
             string[] lines = File.ReadAllLines(filename);
-            string[] separator = new string[] { "~|~" };
+            // The separator needs to be an array of strings for line.Split
+            string[] separator = new string[] { "~|~" }; 
 
             foreach (string line in lines)
             {
+                // We must specify StringSplitOptions.None to ensure that if an entry is empty (e.g., if a prompt was skipped), it still counts as a part.
                 string[] parts = line.Split(separator, StringSplitOptions.None);
 
                 if (parts.Length >= 4) 
                 {
-                    Entry loadedEntry = new Entry
-                    {
-                        _dateText = parts[0],
-                        _timeText = parts[1], 
-                        _promptText = parts[2],
-                        _entryText = parts[3]
-                    };
+                    Entry loadedEntry = new Entry();
+                    // FIX: Access fields using Public Properties
+                    loadedEntry.DateText = parts[0];
+                    loadedEntry.TimeText = parts[1]; 
+                    loadedEntry.PromptText = parts[2];
+                    loadedEntry.EntryText = parts[3];
+                    
                     _entries.Add(loadedEntry);
                 }
             }
@@ -107,6 +117,7 @@ public class Journal
         }
         catch (Exception ex)
         {
+            // Catching exceptions is a good practice!
             Console.WriteLine($"\nAn error occurred while loading the file: {ex.Message}");
         }
     }
